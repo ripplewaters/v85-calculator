@@ -32,13 +32,32 @@ input,div[data-baseweb="input"]>div,div[data-baseweb="select"]{
 .metric-value{ font-size:24px; font-weight:900; color:#000; }
 .stCaption{text-align:center;}
 
-.toggle-btn{
-  display:inline-block; background:#fff; color:#000; border-radius:8px;
-  padding:0.6rem 1.2rem; margin:0.3rem; cursor:pointer; font-weight:600;
-  box-shadow:0 3px 6px rgba(0,0,0,.2); border:2px solid transparent;
+.toggle-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
-.toggle-btn.selected{
-  background:#007b1a; color:#fff; border-color:#007b1a;
+.toggle-btn {
+  background: #fff;
+  color: #000;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 3px 6px rgba(0,0,0,.2);
+  border: 2px solid transparent;
+  transition: all 0.15s ease-in-out;
+}
+.toggle-btn:hover {
+  background: #f3f3f3;
+}
+.toggle-btn.selected {
+  background: #007b1a;
+  color: #fff;
+  border-color: #007b1a;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -54,27 +73,23 @@ st.subheader("Ange antal hästar i varje avdelning")
 antal = [st.number_input(f"Antal hästar – V85-{i+1}", min_value=1, max_value=15, value=1, step=1) for i in range(8)]
 st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Toggle-grid för rätta lopp ---
+# --- Toggle-rad för rätta lopp ---
 st.markdown("<div class='card'>", unsafe_allow_html=True)
 st.subheader("Markera vilka avdelningar som var rätt")
 
-# Toggle-funktion
 if "ratt_lopp" not in st.session_state:
-    st.session_state.ratt_lopp = [True for _ in range(8)]
+    st.session_state.ratt_lopp = [False for _ in range(8)]
 
-cols = st.columns(4)
+st.markdown("<div class='toggle-container'>", unsafe_allow_html=True)
 for i in range(8):
-    col = cols[i % 4]
-    with col:
-        label = f"V85-{i+1}"
-        selected = st.session_state.ratt_lopp[i]
-        btn_class = "toggle-btn selected" if selected else "toggle-btn"
-        if st.button(label, key=f"toggle_{i}"):
-            st.session_state.ratt_lopp[i] = not st.session_state.ratt_lopp[i]
-        st.markdown(f"<div class='{btn_class}'>{label}</div>", unsafe_allow_html=True)
+    label = f"V85-{i+1}"
+    selected = st.session_state.ratt_lopp[i]
+    btn_class = "toggle-btn selected" if selected else "toggle-btn"
+    if st.button(label, key=f"toggle_{i}"):
+        st.session_state.ratt_lopp[i] = not st.session_state.ratt_lopp[i]
+st.markdown("</div>", unsafe_allow_html=True)
 st.markdown("</div>", unsafe_allow_html=True)
 
-# Skapa lista på valda lopp
 ratt_lopp = [f"V85-{i+1}" for i, val in enumerate(st.session_state.ratt_lopp) if val]
 
 # --- Uträkning enligt ATG-logik ---
