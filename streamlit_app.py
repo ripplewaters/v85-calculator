@@ -3,152 +3,124 @@ import streamlit as st
 # --- Grundinställningar ---
 st.set_page_config(page_title="V85 Räkneverktyg", page_icon="🐴", layout="centered")
 
-# --- Anpassad CSS ---
+# --- CSS ---
 st.markdown("""
-    <style>
-        /* === Grundfärger och bakgrund === */
-        .stApp {
-            background-color: #b00017 !important;
-            color: #ffffff !important;
-        }
+<style>
+.stApp { background-color:#b00017 !important; color:#ffffff !important; }
+.block-container { max-width:850px !important; padding-top:2rem; padding-bottom:4rem; }
+h1,h2,h3,h4,h5,label,p,.stMarkdown,.stCaption { color:#ffffff !important; }
 
-        /* === Centrering och maxbredd === */
-        .block-container {
-            max-width: 850px !important;
-            padding-top: 2rem;
-            padding-bottom: 4rem;
-        }
+.card{
+  background:#fff; color:#000; border-radius:10px; padding:20px 25px; margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+}
+input,div[data-baseweb="input"]>div,div[data-baseweb="select"]{
+  background:#fff !important; color:#000 !important; border-radius:6px;
+}
+.stButton button{
+  background:#b00017 !important; color:#fff !important; border:none; border-radius:6px;
+  font-weight:700; width:100%; padding:.7rem; box-shadow:0 3px 8px rgba(0,0,0,.3);
+  transition:all 0.15s ease-in-out;
+}
+.stButton button:hover{ background:#930013 !important; }
 
-        /* === Rubriker, brödtext och etiketter === */
-        h1, h2, h3, h4, h5, label, p, .stMarkdown, .stCaption {
-            color: #ffffff !important;
-        }
+.metric-card{
+  background:#fff; color:#000; border-radius:10px; padding:20px; text-align:center;
+  box-shadow:0 3px 10px rgba(0,0,0,.25);
+}
+.metric-label{ font-size:16px; font-weight:700; color:#000; }
+.metric-value{ font-size:24px; font-weight:900; color:#000; }
+.stCaption{text-align:center;}
 
-        /* === Kort (vit box med skugga) === */
-        .card {
-            background-color: white;
-            color: black;
-            border-radius: 10px;
-            padding: 20px 25px;
-            margin-bottom: 20px;
-            box-shadow: 0px 4px 10px rgba(0,0,0,0.25);
-        }
-
-        /* === Inputs === */
-        div[data-baseweb="input"] > div {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-radius: 6px;
-        }
-        input {
-            color: #000000 !important;
-            font-weight: 600;
-        }
-
-        /* === Multiselect === */
-        div[data-baseweb="select"] {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-radius: 6px;
-        }
-
-        /* === Knapp === */
-        .stButton button {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            border-radius: 6px;
-            border: none;
-            font-weight: 700;
-            width: 100%;
-            padding: 0.6rem;
-            box-shadow: 0px 3px 8px rgba(0,0,0,0.2);
-        }
-        .stButton button:hover {
-            background-color: #f5f5f5 !important;
-        }
-
-        /* === Resultatrutor === */
-        .metric-card {
-            background-color: white;
-            color: black;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0px 3px 10px rgba(0,0,0,0.25);
-        }
-        .metric-label {
-            font-size: 16px;
-            font-weight: bold;
-            color: #000000;
-        }
-        .metric-value {
-            font-size: 24px;
-            font-weight: 900;
-            color: #000000;
-        }
-
-        .stCaption {
-            text-align: center;
-        }
-    </style>
+.toggle-btn{
+  display:inline-block; background:#fff; color:#000; border-radius:8px;
+  padding:0.6rem 1.2rem; margin:0.3rem; cursor:pointer; font-weight:600;
+  box-shadow:0 3px 6px rgba(0,0,0,.2); border:2px solid transparent;
+}
+.toggle-btn.selected{
+  background:#007b1a; color:#fff; border-color:#007b1a;
+}
+</style>
 """, unsafe_allow_html=True)
 
 # --- Titel ---
 st.markdown("<h1>🐴 V85 RÄKNEVERKTYG</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#f9f9f9;'>Beräkna hur många rader ditt matematiska system genererar för 8, 7, 6 och 5 rätt.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#f9f9f9;'>Beräkna hur många rader ditt matematiska system ger för 8, 7, 6 och 5 rätt.</p>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- Inputkort ---
 st.markdown("<div class='card'>", unsafe_allow_html=True)
 st.subheader("Ange antal hästar i varje avdelning")
 antal = [st.number_input(f"Antal hästar – V85-{i+1}", min_value=1, max_value=15, value=1, step=1) for i in range(8)]
-
-st.subheader("Markera vilka avdelningar som var rätt")
-ratt_lopp = st.multiselect("Välj rätta avdelningar", [f"V85-{i+1}" for i in range(8)], default=[f"V85-{i+1}" for i in range(8)])
 st.markdown("</div>", unsafe_allow_html=True)
 
+# --- Toggle-grid för rätta lopp ---
+st.markdown("<div class='card'>", unsafe_allow_html=True)
+st.subheader("Markera vilka avdelningar som var rätt")
 
-# --- Funktion för att räkna vinster enligt korrigerad ATG-logik ---
+# Toggle-funktion
+if "ratt_lopp" not in st.session_state:
+    st.session_state.ratt_lopp = [True for _ in range(8)]
+
+cols = st.columns(4)
+for i in range(8):
+    col = cols[i % 4]
+    with col:
+        label = f"V85-{i+1}"
+        selected = st.session_state.ratt_lopp[i]
+        btn_class = "toggle-btn selected" if selected else "toggle-btn"
+        if st.button(label, key=f"toggle_{i}"):
+            st.session_state.ratt_lopp[i] = not st.session_state.ratt_lopp[i]
+        st.markdown(f"<div class='{btn_class}'>{label}</div>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Skapa lista på valda lopp
+ratt_lopp = [f"V85-{i+1}" for i, val in enumerate(st.session_state.ratt_lopp) if val]
+
+# --- Uträkning enligt ATG-logik ---
 def rakna_vinster(antal, ratt_index):
     n = len(antal)
-    markeringar = [antal[i] - 1 for i in range(n)]
     fel_index = [i for i in range(n) if f"V85-{i+1}" not in ratt_index]
-    ratt_tal = [markeringar[i] for i in range(n) if i not in fel_index]
+    ratt_index_nums = [i for i in range(n) if i not in fel_index]
 
-    if len(fel_index) == 0:  # 8 rätt
-        s = sum(markeringar)
-        q = sum(x**2 for x in markeringar)
-        c = sum(x**3 for x in markeringar)
+    if len(fel_index) == 0:
+        a = [antal[i]-1 for i in range(n)]
+        S = sum(a)
+        Q = sum(x*x for x in a)
+        C = sum(x*x*x for x in a)
         a8 = 1
-        a7 = s
-        a6 = (s**2 - q) // 2
-        a5 = (s**3 - 3*s*q + 2*c) // 6
+        a7 = S
+        a6 = (S*S - Q)//2
+        a5 = (S*S*S - 3*S*Q + 2*C)//6
         rubrik = "Du hade 8 rätt"
 
-    elif len(fel_index) == 1:  # 7 rätt
-        fel = antal[fel_index[0]]
-        s = sum(ratt_tal)
-        q = sum(x**2 for x in ratt_tal)
+    elif len(fel_index) == 1:
+        fel_count = antal[fel_index[0]]
+        a = [antal[i]-1 for i in ratt_index_nums]
+        S = sum(a)
+        Q = sum(x*x for x in a)
         a8 = 0
-        a7 = 1
-        a6 = (fel - 1) * s
-        a5 = ((s**2 - q)//2) * (fel - 1)
+        a7 = fel_count
+        a6 = S * fel_count
+        a5 = ((S*S - Q)//2) * fel_count
         rubrik = "Du hade 7 rätt"
 
-    elif len(fel_index) == 2:  # 6 rätt
-        fel = [antal[i] for i in fel_index]
-        s = sum(ratt_tal)
+    elif len(fel_index) == 2:
+        fel_counts = [antal[i] for i in fel_index]
+        a = [antal[i]-1 for i in ratt_index_nums]
+        S = sum(a)
         a8 = 0
         a7 = 0
-        a6 = 1
-        a5 = s * (fel[0] - 1) * (fel[1] - 1)
+        a6 = fel_counts[0] * fel_counts[1]
+        a5 = S * a6
         rubrik = "Du hade 6 rätt"
 
-    elif len(fel_index) == 3:  # 5 rätt
+    elif len(fel_index) == 3:
+        fel_counts = [antal[i] for i in fel_index]
         a8 = 0
         a7 = 0
         a6 = 0
-        a5 = 1
+        a5 = fel_counts[0] * fel_counts[1] * fel_counts[2]
         rubrik = "Du hade 5 rätt"
 
     else:
@@ -157,9 +129,8 @@ def rakna_vinster(antal, ratt_index):
 
     return rubrik, a8, a7, a6, a5
 
-
-# --- Beräkna och visa resultat ---
-if st.button("BERÄKNA RESULTAT"):
+# --- Visa resultat ---
+if st.button("BERÄKNA RESULTAT", key="calc_btn"):
     rubrik, a8, a7, a6, a5 = rakna_vinster(antal, ratt_lopp)
     st.markdown("<br>", unsafe_allow_html=True)
     st.subheader(rubrik)
