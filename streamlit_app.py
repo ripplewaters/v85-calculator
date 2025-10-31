@@ -3,32 +3,41 @@ import streamlit as st
 # --- Grundinställningar ---
 st.set_page_config(page_title="V85 Räkneverktyg", page_icon="🐴", layout="centered")
 
-# --- Anpassad stil ---
+# --- Anpassad CSS ---
 st.markdown("""
     <style>
-        /* Bakgrundsfärg hela sidan */
+        /* === Grundfärger och bakgrund === */
         .stApp {
             background-color: #b00017 !important;
-            color: #000000;
+            color: #000000 !important;
         }
 
-        /* Centrera innehållet lite bättre */
-        [data-testid="stAppViewContainer"] {
-            padding-top: 40px;
+        /* === Centrering och maxbredd === */
+        .block-container {
+            max-width: 800px !important;
+            padding-top: 2rem;
+            padding-bottom: 4rem;
         }
 
-        /* Rubriker */
-        h1, h2, h3, h4 {
-            color: #ffffff !important;
-            font-weight: 700;
+        /* === Rubriker === */
+        h1, h2, h3 {
+            color: white !important;
+            text-align: center;
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 0.5px;
         }
 
-        /* Instruktionstext */
-        .stMarkdown p {
-            color: #ffffff !important;
+        /* === Kort-stil (vit box med skugga) === */
+        .card {
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* Inputs: vit bakgrund, svart text */
+        /* === Inputs === */
         div[data-baseweb="input"] > div {
             background-color: #ffffff !important;
             color: #000000 !important;
@@ -39,60 +48,68 @@ st.markdown("""
             font-weight: 600;
         }
 
-        /* Multiselect (rätt lopp) */
+        /* === Multiselect === */
         div[data-baseweb="select"] {
             background-color: #ffffff !important;
             color: #000000 !important;
             border-radius: 6px;
         }
-        div[data-baseweb="tag"] {
-            background-color: #e6e6e6 !important;
-            color: #000000 !important;
-        }
 
-        /* Resultat: gör metric-rutor rena vita */
-        div[data-testid="stMetricValue"], div[data-testid="stMetricLabel"] {
-            color: #000000 !important;
-        }
-
+        /* === Knappar === */
         .stButton button {
             background-color: #ffffff !important;
             color: #000000 !important;
             border-radius: 6px;
             border: none;
             font-weight: 700;
+            width: 100%;
+            padding: 0.6rem;
+            box-shadow: 0px 3px 8px rgba(0,0,0,0.2);
         }
         .stButton button:hover {
             background-color: #f5f5f5 !important;
-            color: #000000 !important;
+        }
+
+        /* === Resultatrutor === */
+        .metric-card {
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0px 3px 10px rgba(0,0,0,0.25);
+        }
+        .metric-label {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #000000;
         }
 
         .stCaption {
             color: #ffffff !important;
+            text-align: center;
         }
     </style>
 """, unsafe_allow_html=True)
 
 # --- Titel ---
-st.title("🐴 V85 Räkneverktyg")
+st.markdown("<h1>🐴 V85 RÄKNEVERKTYG</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#f9f9f9;'>Beräkna hur många rader ditt matematiska system genererar för 8, 7, 6 och 5 rätt.</p>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
-st.markdown("""
-Det här verktyget hjälper dig att räkna ut hur många rader du får med 8, 7, 6 och 5 rätt
-utifrån ditt matematiska system på **V85**.
+# --- Inmatning i ett kort ---
+with st.container():
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.subheader("🎯 Ange antal hästar i varje avdelning")
+    antal = [st.number_input(f"Antal hästar – V85-{i+1}", min_value=1, max_value=15, value=1, step=1) for i in range(8)]
 
-Fyll i hur många hästar du spelat i varje avdelning, markera vilka avdelningar som var rätt,
-och klicka på **Beräkna** för att se resultatet.
-""")
-
-st.divider()
-
-# --- Input: antal hästar per avdelning ---
-antal = [st.number_input(f"Antal hästar – V85-{i+1}", min_value=1, max_value=15, value=1, step=1) for i in range(8)]
-
-# --- Välj vilka avdelningar som var rätt ---
-ratt_lopp = st.multiselect("Vilka avdelningar var rätt?", [f"V85-{i+1}" for i in range(8)], default=[f"V85-{i+1}" for i in range(8)])
-
-st.divider()
+    st.subheader("✅ Markera vilka avdelningar som var rätt")
+    ratt_lopp = st.multiselect("Välj rätta avdelningar", [f"V85-{i+1}" for i in range(8)], default=[f"V85-{i+1}" for i in range(8)])
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # --- Funktion för att räkna vinster enligt ATG-logik ---
 def rakna_vinster(antal, ratt_index):
@@ -135,15 +152,20 @@ def rakna_vinster(antal, ratt_index):
     return rubrik, a8, a7, a6, a5
 
 # --- Beräkna och visa resultat ---
-if st.button("Beräkna"):
+if st.button("BERÄKNA RESULTAT"):
     rubrik, a8, a7, a6, a5 = rakna_vinster(antal, ratt_lopp)
+    st.markdown("<br>", unsafe_allow_html=True)
     st.subheader(rubrik)
-    st.markdown("---")
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("8 rätt", f"{a8:,}")
-    col2.metric("7 rätt", f"{a7:,}")
-    col3.metric("6 rätt", f"{a6:,}")
-    col4.metric("5 rätt", f"{a5:,}")
 
-    st.markdown("---")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown("<div class='metric-card'><div class='metric-label'>8 rätt</div><div class='metric-value'>" + f"{a8:,}" + "</div></div>", unsafe_allow_html=True)
+    with col2:
+        st.markdown("<div class='metric-card'><div class='metric-label'>7 rätt</div><div class='metric-value'>" + f"{a7:,}" + "</div></div>", unsafe_allow_html=True)
+    with col3:
+        st.markdown("<div class='metric-card'><div class='metric-label'>6 rätt</div><div class='metric-value'>" + f"{a6:,}" + "</div></div>", unsafe_allow_html=True)
+    with col4:
+        st.markdown("<div class='metric-card'><div class='metric-label'>5 rätt</div><div class='metric-value'>" + f"{a5:,}" + "</div></div>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
     st.caption("Beräkningen följer ATG:s officiella rättningsmall för matematiska system (V85).")
